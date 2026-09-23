@@ -12,6 +12,8 @@ await app.init({
 
 app.stage.eventMode = 'static'
 app.stage.hitArea = app.screen;
+
+
 document.body.appendChild(app.canvas);
 
 const racket = new Racket();
@@ -29,11 +31,21 @@ app.stage.on('pointermove', (event) => {
 
 const ball = new Ball();
 
-ball._view.x = 519;
-ball._view.y = 519;
+const modal = document.querySelector('.modal-window');
+const btnRestart = document.querySelector('.btn-restart');
 
 app.stage.addChild(ball._view)
 
 app.ticker.add(() => {
-    ball.movemantBall();
+    ball.movemantBall(racket, app, modal);
+})
+
+app.stage.on('pointerdown', () => {
+    ball.start()
+})
+
+btnRestart.addEventListener('click', ()=>{
+    modal.classList.add('hidden')
+    ball.started = false;
+    app.ticker.start()
 })
