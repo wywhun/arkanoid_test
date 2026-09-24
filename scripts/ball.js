@@ -3,8 +3,8 @@ import { Container, Graphics } from "./pixi.mjs";
 export class Ball{
     constructor(radius = 10){
         this.radius = radius;
-        this.speedX = 7;
-        this.speedY = 7;
+        this.speedX = 10;
+        this.speedY = 10;
         this.started = false;
 
         this._view = new Container();
@@ -24,7 +24,7 @@ export class Ball{
         this.started = true;
     }
 
-    movemantBall(racket, app, modal){
+    movemantBall(racket, app, modal, delta = 1){
 
         if (!this.started) {
             this._view.x = racket.view.x + 55;
@@ -32,14 +32,20 @@ export class Ball{
             return; 
         }
 
-        this._view.x += this.speedX;
-        this._view.y += this.speedY;
+        this._view.x += Math.round(this.speedX * delta);
+        this._view.y += Math.round(this.speedY * delta);
 
 
-        if (this._view.x <= 0 || this._view.x >= 1000) {
+        if (this._view.x - this.radius <= 0 && this.speedX < 0) {
+            this._view.x = this.radius; 
             this.speedX *= -1;
         }
-        if (this._view.y <= 0) {
+        if (this._view.x + this.radius >= 1000 && this.speedX > 0) {
+            this._view.x = 1000 - this.radius; 
+            this.speedX *= -1;
+        }
+        if (this._view.y - this.radius <= 0 && this.speedY < 0) {
+            this._view.y = this.radius; 
             this.speedY *= -1;
         }
         if (this._view.y >= 600 ){
@@ -54,8 +60,8 @@ export class Ball{
             const racketHeight = 20;
         
 
-            const racketLeft = racketX - racketWidth / 2;
-            const racketRight = racketX + racketWidth / 2;
+            const racketLeft = racketX;
+            const racketRight = racketX + racketWidth;
             const racketTop = racketY;
             const racketBottom = racketY + racketHeight;
 
@@ -68,6 +74,7 @@ export class Ball{
         
             if (this.speedY > 0 && ballBottom >= racketTop && ballTop <= racketBottom && ballRight >= racketLeft && ballLeft <= racketRight) {
                 this.speedY *= -1;
+                this._view.y = racketTop - this.radius;
             }
         }
     }
