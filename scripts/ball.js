@@ -56,7 +56,7 @@ export class Ball{
         if (racket){
             const racketX = racket.view.x;
             const racketY = racket.view.y;
-            const racketWidth = 120;
+            const racketWidth = racket.width;
             const racketHeight = 20;
         
 

@@ -2,6 +2,7 @@ import { Application } from './pixi.mjs';
 import { Racket } from './racket.js';
 import { Ball } from './ball.js';
 import { Block } from './block.js';
+import { Bonus } from './bonus.js';
 
 const app = new Application();
 
@@ -65,9 +66,10 @@ btnRestart.addEventListener('click', ()=>{
     app.ticker.start()
 })
 
-//БЛОКИ
+//БЛОКИ и БОНУСЫ
 
 const blocks = [];
+const activeBonuses = [];
 
 function createBlocksGrid(){
     const rows = 4;
@@ -99,6 +101,14 @@ app.ticker.add((ticker) => {
     for (let i = blocks.length - 1; i >= 0; i--) {
         const block = blocks[i];
         if (block.checkCollision(ball)) {
+            if (Math.random() < 0.05) {
+                const bonusX = block.view.x + block.width / 2 - 10;
+                const bonusY = block.view.y;
+                
+                const bonus = new Bonus(bonusX, bonusY);
+                app.stage.addChild(bonus.view);
+                activeBonuses.push(bonus);
+            }
             block.destroy(app); 
             blocks.splice(i, 1);
             ball.speedY *= -1; 
@@ -106,11 +116,58 @@ app.ticker.add((ticker) => {
             updateScore(50);
 
             if (blocks.length === 0){
-                app.ticker.stop()
-            }
+                const modalTitle = document.querySelector('.text-lose')
+                setTimeout(() => {
+                app.ticker.stop();
+                modal.classList.remove('hidden');
+                modalTitle.textContent = 'YOU WIN!';
+                btnRestart.textContent = 'REPEAT';
+            }, 50);
+        }
 
             break; 
 
         }
     }
+
+    for (let i = activeBonuses.length - 1; i >= 0; i--) {
+        const bonus = activeBonuses[i];
+        bonus.move(ticker.deltaTime); 
+
+        if (bonus.checkCollision(racket)) {
+            racket.expand(); 
+            bonus.destroy(app);
+            activeBonuses.splice(i, 1);
+            continue;
+        }
+        if (bonus.view.y > 600) {
+            bonus.destroy(app);
+            activeBonuses.splice(i, 1);
+        }
+    }
+
+
+function restartGame() {
+    modal.classList.add('hidden');
+    blocks.forEach(block => block.destroy(app));
+    blocks.length = 0;
+
+    createBlocksGrid();
+
+    if (typeof activeBonuses !== 'undefined') {
+        activeBonuses.forEach(bonus => bonus.destroy(app));
+        activeBonuses.length = 0;
+    }
+
+    racket._view.scale.x = 1;
+    racket.isExpanded = false;
+
+    ball.started = false;
+    app.ticker.start();
+}
+btnRestart.addEventListener('click', () => {
+    score = 0;
+    updateScore(0);
+    restartGame();
+    });
 });
